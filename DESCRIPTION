@@ -2,14 +2,13 @@ Package: SCADIE
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Daiwei",
+           family = "Tang",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
+           email = "Daiwei.tang@yale.edu",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to
-    pick a license
+Description: Smoothly Clipped Absolute Deviation-based Iterative Estimation (SCADIE). A statistical framework for simultaneous estimation of cell type proportions and the cell type-specific gene expression profiles from gene expression data.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
