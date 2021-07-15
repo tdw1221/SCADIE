@@ -2,6 +2,24 @@
 
 
 
+#' Implementation of separate W-update without SCAD Penalty
+#'
+#' This function should be called by parental function and is not supposed to be used individually.
+#' @param ini_H_adjusted Initial H
+#' @param ini_W_adjusted Initial W
+#' @param bulk_expr_sub Bulk Y with only siganture gene rows
+#' @param bulk_expr_full Full bulk Y
+#' @param n_ct Number of cell types
+#' @param itr Number of iteration
+#' @param H_update_method ``NNLS" or ``DWLS"
+#' @param H_update_gene ``all" or ``signature"
+#' @param signature_gene_row_index row indexes of signature genes in full W or Y
+#' @param duplicated_rows If there are duplicated rows present in Y
+#'
+#' @return Returns a list of W and H after iteration, as well as initial W and H
+#' @export
+#'
+#' @examples
 SIR_itr_general <- function(ini_H_adjusted,ini_W_adjusted,bulk_expr_sub,bulk_expr_full,n_ct,itr=200,H_update_method="NNLS",H_update_gene="all",signature_gene_row_index,duplicated_rows=F){
   H_tmp <-  ini_H_adjusted
   W_tmp <- ini_W_adjusted
@@ -51,6 +69,30 @@ SIR_itr_general <- function(ini_H_adjusted,ini_W_adjusted,bulk_expr_sub,bulk_exp
 
 
 
+#' Implementation of SCAD-penalty itertion
+#' This is a sub-function and is supposed to be called by its parental function
+#' @param ini_H_adjusted1 Initial H1
+#' @param ini_H_adjusted2 Initial H2
+#' @param ini_W_adjusted1 Initial W1
+#' @param ini_W_adjusted2 Initial W2
+#' @param bulk_expr_sub1 Bulk Y1 with only signature gene rows
+#' @param bulk_expr_sub2 Bulk Y2 with only signature gene rows
+#' @param bulk_expr_full1 Bulk Y1
+#' @param bulk_expr_full2 Bulk Y2
+#' @param itr number of iteration
+#' @param lambda the $\lambda$ controlling the penalty term in objective function
+#' @param Weight_mat input weight matrix
+#' @param H_update_method ``NNLS" or ``DWLS"
+#' @param H_update_gene ``siganture" or ``all"
+#' @param signature_gene_row_index signature genes' row indexes in full Y or W
+#' @param weight_update_number update E every n times, not used
+#' @param cutoff default 10^-6, see the document of ``Iterate_W_H_full_general" for more explanation
+#' @param lambda_weight see the document of ``Iterate_W_H_full_general" for more explanation
+#'
+#' @return End Ws and Hs, initial Ws and Hs, as well as weight matrix E
+#' @export
+#'
+#' @examples
 SIR_itr_W_sim_updated_general <- function(ini_H_adjusted1, ini_H_adjusted2, ini_W_adjusted1, ini_W_adjusted2, bulk_expr_sub1,bulk_expr_sub2,bulk_expr_full1, bulk_expr_full2, itr=200, lambda, Weight_mat, H_update_method,H_update_gene,signature_gene_row_index,weight_update_number,cutoff,lambda_weight){
   H_tmp1 <-   ini_H_adjusted1
   H_tmp2 <-   ini_H_adjusted2
@@ -135,6 +177,19 @@ SIR_itr_W_sim_updated_general <- function(ini_H_adjusted1, ini_H_adjusted2, ini_
 }
 
 
+#' Implementation of SCAD-penalized W update
+#'
+#' @param H1 cell type proportion matrix for group1
+#' @param H2 cell type proportion matrix for group2
+#' @param lambda $\lambda$ controllling the SCAD penalty term in the objective function
+#' @param Y1 full bulk matrix Y1
+#' @param Y2 full bulk matrix Y2
+#' @param Weight_mat weight matrix E
+#'
+#' @return the updated W1 and W2
+#' @export
+#'
+#' @examples
 update_W_sim_adaptive1_general = function(H1, H2, lambda, Y1, Y2, Weight_mat){
   r = nrow(H1)
   n1 = ncol(Y1)
@@ -161,8 +216,36 @@ update_W_sim_adaptive1_general = function(H1, H2, lambda, Y1, Y2, Weight_mat){
 
 
 
-### The points estimate function
-Iterate_W_H_full_general = function(c=NA, n_ct,input_initial_H1,input_initial_H2,input_initial_W1,input_initial_W2,input_bulk_sub1,input_bulk_sub2,input_bulk_full1,input_bulk_full2, update_W_method ,var_estimate=NA,H_update_method,H_update_gene,signature_gene_row_index,mc.cores=1,max_itr=50,weight_update_number=999,cutoff,lambda_weight=4){
+
+#' Main function for SCADIE point estimate
+#'
+#'This is the main interface function for users. Due to the large number of arguments it take in (W1, W2, H1, H2, etc.), it is recommended to wrap them all in a list. As the list will be extremely useful also in the standard error estimate function ``Estimate_sd_general"
+#'
+#' @param c an auxicilliary argument used only when this function is called by ``Estimate_sd_general", default value is NA and should be kept like that.
+#' @param n_ct number of cell types
+#' @param input_initial_H1 initial cell type proportion matrix $H_{1}$, each row represents a cell type and each column represents a sample
+#' @param input_initial_H2 initial cell type proportion matrix $H_{2}$, each row represents a cell type and each column represents a sample
+#' @param input_initial_W1 initial full $W_1$ matrix. Each row represents a gene and each column represents a cell type. Can be obtained by the ``update_W" function with $Y$ and initial $H$ as input. Please be noted that the $W$ is required to have rownames that are each gene's name
+#' @param input_initial_W2 initial full $W_2$ matrix. Each row represents a gene and each column represents a cell type. Can be obtained by the ``update_W" function with $Y$ and initial $H$ as input. Please be noted that the $W$ is required to have rownames that are each gene's name
+#' @param input_bulk_sub1 initial sub $Y_1$ matrix containing only the signature genes. Each row represents a gene and each column represents a sample.
+#' @param input_bulk_sub2 initial sub $Y_2$ matrix containing only the signature genes. Each row represents a gene and each column represents a sample.
+#' @param input_bulk_full1 initial full bulk $Y_1$ matrix. Each row represents a gene and each column represents a sample.
+#' @param input_bulk_full2 initial full bulk $Y_2$ matrix. Each row represents a gene and each column represents a sample.
+#' @param update_W_method the $W$-update method, can be ``NNLS" or ``SCAD", default is ``SCAD"
+#' @param var_estimate an auxcilliary argument used when called by `Estimate_sd_general", default is NA and no need to change it when only running this function
+#' @param H_update_method the $W$-update method, can be ``NNLS" or ``DWLS", default is ``NNLS"
+#' @param H_update_gene in the $H$-update step, what set of genes to used for regression, this can be ``all" for using full $Y$ and $W$, or ``signature" for using only those signature genes, default is ``signature"
+#' @param signature_gene_row_index a vector containing signature genes' row indexes in full $Y$ or $W$
+#' @param max_itr max iteration number, default 50.
+#' @param weight_update_number update the weight matrix every ``weight_update_number" rounds. Noted that this is a new feature that has not been included in our paper. In the current set-up, the weight matrix $E$ is obtained from initial ``warm-up" runs. But to make it more data-adaptive, we can update $E$ during the iteration.
+#' @param cutoff the cutoff coefficient for algorithm convergence, the algorithm will stop when the norm difference between previous $W$ and current $W$ is smaller than cutoff*W_norm, default $10^-8$
+#' @param eta_weight $\eta_{n}$ for SCAD penalty
+#'
+#' @return a list with length two, the first list field contains all the outputs related to group 1, including end $W_{1}, H_{1}$, the weight matrix $E$, the updated matrix $E$ (if any), as well as a record of initial $W_{1}$; the second list field contains all the outputs related to group 2, including end $W_{2}, H_{2}$, the weight matrix $E$, the updated matrix $E$ (if any), as well as a record of initial $W_{2}$
+#' @export
+#'
+#' @examples Please refer to package vignette for a detailed walkthrough.
+Iterate_W_H_full_general = function(c=NA, n_ct,input_initial_H1,input_initial_H2,input_initial_W1,input_initial_W2,input_bulk_sub1,input_bulk_sub2,input_bulk_full1,input_bulk_full2, update_W_method="SCAD" ,var_estimate=NA,H_update_method="NNLS",H_update_gene="all",signature_gene_row_index,max_itr=50,weight_update_number=999,cutoff=10^-6,eta_weight=4){
   if (is.na(c)){
     column_index1 <- seq(1:ncol(input_initial_H1))
     column_index2 <- seq(1:ncol(input_initial_H2))
@@ -238,7 +321,7 @@ Iterate_W_H_full_general = function(c=NA, n_ct,input_initial_H1,input_initial_H2
     scad_der = function(x, thres){
       return((x <= thres) + (x>thres) * pmax(3.7*thres - x, 0) / (2.7*thres) )
     }
-    W_dif_Weight = scad_der(t(abs(nnls_tmp1_0$W_end - nnls_tmp2_0$W_end)), lambda_weight)
+    W_dif_Weight = scad_der(t(abs(nnls_tmp1_0$W_end - nnls_tmp2_0$W_end)), eta_weight)
 
 
     ## Run the scad program
@@ -249,7 +332,7 @@ Iterate_W_H_full_general = function(c=NA, n_ct,input_initial_H1,input_initial_H2
       bulk_expr_sub1=input_bulk_sub1[,column_index1],bulk_expr_sub2=input_bulk_sub2[,column_index2],
       bulk_expr_full1=input_bulk_full1[,column_index1], bulk_expr_full2=input_bulk_full2[,column_index2],
       itr=max_itr, lambda=0.1, Weight_mat=W_dif_Weight,
-     H_update_method=H_update_method,H_update_gene=H_update_gene,signature_gene_row_index=signature_gene_row_index,weight_update_number=weight_update_number,cutoff=cutoff,lambda_weight=lambda_weight)
+     H_update_method=H_update_method,H_update_gene=H_update_gene,signature_gene_row_index=signature_gene_row_index,weight_update_number=weight_update_number,cutoff=cutoff,lambda_weight=eta_weight)
 
     rownames(test_out_tmp$W_end1) <- rownames(input_bulk_full1)
     rownames(test_out_tmp$W_end2) <- rownames(input_bulk_full2)
@@ -272,13 +355,35 @@ Iterate_W_H_full_general = function(c=NA, n_ct,input_initial_H1,input_initial_H2
 
 
 
-Estimate_sd_general <- function(input_list, update_W_method="SCAD", method="jackknife",cores=6,bs_num=500,H_update_method="NNLS",H_update_gene="all",signature_gene_row_index=NULL,jk_subsample=NA,max_itr=50,weight_update_number=999,cutoff=10^-6,lambda_weight=4){
+#' Standard Error Estimation for SCADIE through Jackknife (or Bootstrap)
+#'
+#'This function estiamtes the entry-wise standard error for W2-W1, which is used in combined with point estimates from `Iterate_W_H_full_general" for DEG identification. The default strategy is through leave-one-out Jackknife, but bootstrap is also implemented.
+#'
+#' @param input_list A list containing the following fields: bulk_full_1,bulk_full_2, initial_H_1, initial_H_2, initial_W_1, initial_W_2, bulk_sub_1, bulk_sub_2. For a detailed explanation of these variables, please refer to the document of ``Iterate_W_H_full_general"
+#' @param update_W_method The method use for W-update, can be "SCAD" or "NNLS", default ``SCAD"
+#' @param method ``jackknife" or ``bootstrap", default ``jackknife"
+#' @param cores Number of cores used for computating
+#' @param jk_subsample Number of jackknife resamplings, the default strategy for jackknife is to exhaustively apply levae-one-out through all samples, the only case we need to specify this argument is when sample size is extrmely large. Default value is NA, which equals the smaller number of samples in group1 and 2.
+#' @param bs_num Number of bootstrap re-sampling, it is recommended to use at least 2x sample size
+#' @param H_update_method the $W$-update method, can be ``NNLS" or ``DWLS", default is ``NNLS"
+#' @param H_update_gene in the $H$-update step, what set of genes to used for regression, this can be ``all" for using full $Y$ and $W$, or ``signature" for using only those signature genes, default is ``signature"
+#' @param signature_gene_row_index a vector containing signature genes' row indexes in full $Y$ or $W$
+#' @param max_itr max iteration number, default 50.
+#' @param weight_update_number update the weight matrix every ``weight_update_number" rounds. Noted that this is a new feature that has not been included in our paper (default 999, which does not update $E$ during iteration). In the current set-up, the weight matrix $E$ is obtained from initial ``warm-up" runs. But to make it more data-adaptive, we can update $E$ during the iteration.
+#' @param cutoff the cutoff coefficient for algorithm convergence, the algorithm will stop when the norm difference between previous $W$ and current $W$ is smaller than cutoff*W_norm, default $10^-8$
+#' @param eta_weight $\eta_{n}$ for SCAD penalty
+#'
+#' @return When method=``jackknife", the output is a list list of 4 fields: W1_vec, W2_vec,  w_diff_sd_jackknife and w_diff_sd_jackknife_raw. The W1_vec and W2_vec record all output W1s, W2s throughout the leave-one-out process. w_diff_sd_jackknife_raw.records the sample sd from all resamplings, and w_diff_sd_jackknife is the entry-wise sd. For DEG analysis, w_diff_sd_jackknife should be used. When method=``bootstrap", there would not be w_diff_sd_jackknife_raw.records in the output.
+#' @export
+#'
+#' @examples Please refer to package vignette for a detailed walkthrough.
+Estimate_sd_general <- function(input_list, update_W_method="SCAD", method="jackknife",cores,bs_num=500,H_update_method="NNLS",H_update_gene="all",signature_gene_row_index=NULL,jk_subsample=NA,max_itr=50,weight_update_number=999,cutoff=10^-6,eta_weight=4){
 
   n_sample = min(ncol(input_list$bulk_full_1),ncol(input_list$bulk_full_2))
   n_ct <- ncol(input_list$sig_matrix)
   if (method == "jackknife"){
     if (is.na(jk_subsample)){
-      result_jackknife= mclapply(1:n_sample, Iterate_W_H_full_general, n_ct=n_ct,input_initial_H1=input_list$initial_H_1,input_initial_H2=input_list$initial_H_2,input_initial_W1=input_list$initial_W_1,input_initial_W2=input_list$initial_W_2,input_bulk_sub1=input_list$bulk_sub_1,input_bulk_sub2=input_list$bulk_sub_2,input_bulk_full1=input_list$bulk_full_1,input_bulk_full2=input_list$bulk_full_2, update_W_method=update_W_method,var_estimate=method ,H_update_method=H_update_method,H_update_gene=H_update_gene,signature_gene_row_index=signature_gene_row_index,max_itr=max_itr,weight_update_number=weight_update_number,cutoff=cutoff,lambda_weight=lambda_weight,mc.cores=cores)
+      result_jackknife= mclapply(1:n_sample, Iterate_W_H_full_general, n_ct=n_ct,input_initial_H1=input_list$initial_H_1,input_initial_H2=input_list$initial_H_2,input_initial_W1=input_list$initial_W_1,input_initial_W2=input_list$initial_W_2,input_bulk_sub1=input_list$bulk_sub_1,input_bulk_sub2=input_list$bulk_sub_2,input_bulk_full1=input_list$bulk_full_1,input_bulk_full2=input_list$bulk_full_2, update_W_method=update_W_method,var_estimate=method ,H_update_method=H_update_method,H_update_gene=H_update_gene,signature_gene_row_index=signature_gene_row_index,max_itr=max_itr,weight_update_number=weight_update_number,cutoff=cutoff,eta_weight=eta_weight,mc.cores=cores)
       jackknife_vec1<-list(1)
       jackknife_vec2<-list(2)
 
@@ -302,7 +407,7 @@ Estimate_sd_general <- function(input_list, update_W_method="SCAD", method="jack
 
     else{
       sample_list = sample(seq(1,n_sample),jk_subsample)
-      result_jackknife= mclapply(sample_list, Iterate_W_H_full_general, n_ct=n_ct,input_initial_H1=input_list$initial_H_1,input_initial_H2=input_list$initial_H_2,input_initial_W1=input_list$initial_W_1,input_initial_W2=input_list$initial_W_2,input_bulk_sub1=input_list$bulk_sub_1,input_bulk_sub2=input_list$bulk_sub_2,input_bulk_full1=input_list$bulk_full_1,input_bulk_full2=input_list$bulk_full_2, update_W_method=update_W_method,var_estimate=method ,H_update_method=H_update_method,H_update_gene=H_update_gene,signature_gene_row_index=signature_gene_row_index,max_itr=max_itr,weight_update_number=weight_update_number,cutoff=cutoff,lambda_weight=lambda_weight,mc.cores=cores)
+      result_jackknife= mclapply(sample_list, Iterate_W_H_full_general, n_ct=n_ct,input_initial_H1=input_list$initial_H_1,input_initial_H2=input_list$initial_H_2,input_initial_W1=input_list$initial_W_1,input_initial_W2=input_list$initial_W_2,input_bulk_sub1=input_list$bulk_sub_1,input_bulk_sub2=input_list$bulk_sub_2,input_bulk_full1=input_list$bulk_full_1,input_bulk_full2=input_list$bulk_full_2, update_W_method=update_W_method,var_estimate=method ,H_update_method=H_update_method,H_update_gene=H_update_gene,signature_gene_row_index=signature_gene_row_index,max_itr=max_itr,weight_update_number=weight_update_number,cutoff=cutoff,eta_weight=eta_weight,mc.cores=cores)
       jackknife_vec1<-list(1)
       jackknife_vec2<-list(2)
 
@@ -329,7 +434,7 @@ Estimate_sd_general <- function(input_list, update_W_method="SCAD", method="jack
 
   else if (method == "bootstrap"){
     ## bootstrap sampling will create duplicated rows, be careful
-    result_bootstrap= mclapply(1:bs_num, Iterate_W_H_full_general, n_ct=n_ct,input_initial_H1=input_list$initial_H_1,input_initial_H2=input_list$initial_H_2,input_initial_W1=input_list$initial_W_1,input_initial_W2=input_list$initial_W_2,input_bulk_sub1=input_list$bulk_sub_1,input_bulk_sub2=input_list$bulk_sub_2,input_bulk_full1=input_list$bulk_full_1,input_bulk_full2=input_list$bulk_full_2, update_W_method=update_W_method,var_estimate=method ,H_update_method=H_update_method,H_update_gene=H_update_gene,signature_gene_row_index=signature_gene_row_index,max_itr=30,weight_update_number=weight_update_number,cutoff=cutoff,lambda_weight=lambda_weight,mc.cores=cores)
+    result_bootstrap= mclapply(1:bs_num, Iterate_W_H_full_general, n_ct=n_ct,input_initial_H1=input_list$initial_H_1,input_initial_H2=input_list$initial_H_2,input_initial_W1=input_list$initial_W_1,input_initial_W2=input_list$initial_W_2,input_bulk_sub1=input_list$bulk_sub_1,input_bulk_sub2=input_list$bulk_sub_2,input_bulk_full1=input_list$bulk_full_1,input_bulk_full2=input_list$bulk_full_2, update_W_method=update_W_method,var_estimate=method ,H_update_method=H_update_method,H_update_gene=H_update_gene,signature_gene_row_index=signature_gene_row_index,max_itr=30,weight_update_number=weight_update_number,cutoff=cutoff,eta_weight=eta_weight,mc.cores=cores)
     bootstrap_vec1<-list(1)
     bootstrap_vec2<-list(2)
     for (c in 1:bs_num){
