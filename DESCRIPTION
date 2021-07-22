@@ -1,5 +1,5 @@
 Package: SCADIE
-Title:  Smoothly Clipped Absolute Deviation-based Iterative Estimation
+Title: Smoothly Clipped Absolute Deviation-based Iterative Estimation
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Daiwei",
@@ -15,3 +15,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports: quadprog, 
 	NMF
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

@@ -1,0 +1,11 @@
+base
+registry
+pkgmaker
+rngtools
+cluster
+BiocGenerics
+Biobase
+bigmemory
+NMF
+SCADIE
+corpcor

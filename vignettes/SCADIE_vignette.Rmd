@@ -1,0 +1,153 @@
+---
+title: "SCADIE_vignette"
+output: rmarkdown::html_vignette
+author: "Daiwei Tang"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{SCADIE_vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library("NMF")
+devtools::load_all(".")
+```
+
+
+In this document we walk through the process of preparing data and analysis with SCADIE.
+
+## Preparing Data
+
+Since SCADIE takes many data inputs for both groups, it is HIGHLY RECOMMENDED to store them in a list. Depending on the analysis goal, the data fields in the list may vary. In this section we use the Alzheimer’s disease (AD) dataset as an example, to walk through the data preparation process.
+
+Due to the complexity of raw data preprocessing, here we begin with pre-processed datasets. 
+
+```{R}
+data("example_data")
+ls()
+```
+
+The *example_data* contains five objects:
+
+* *geneExpr_raw* is the combined gene expression dataframe for both groups
+* *ad_index* is the column indexes for AD samples in *geneExpr_raw*
+* *ctrl_index* is the column indexes for control samples in *geneExpr_raw*
+* *initial_H_1* is the IHC-profiled proportions for each sample in control group, see the manuscript for more details.
+* *initial_H_2* is the IHC-profiled proportions for each sample in AD group, see the manuscript for more details.
+
+We first create an empty list:
+```{R}
+ihc_bulk <- list()
+```
+
+Before adding bulk data $Y$ into the list, we need to remove the rows with constant value (e.g. 0), as these rows might create singularity during regression. The raw $Y$s are usually data frames, need to convert them to matrix when including in the list. It is also recommended to make sure the row and column names are correctly retained.
+
+
+```{R}
+## Remove const rows across all columns
+geneExpr_raw_sub <- geneExpr_raw[-which(apply(geneExpr_raw,1,sd)==0),]
+
+## add the bulk matrices to the list 
+ihc_bulk$bulk_full_1 <- as.matrix(geneExpr_raw_sub[,ctrl_index])
+ihc_bulk$bulk_full_2 <- as.matrix(geneExpr_raw_sub[,ad_index])
+
+## remove the group-specific const rows
+rm_bulk_full1 <- which(apply(ihc_bulk$bulk_full_1 , 1, sd)==0)
+rm_bulk_full2 <- which(apply(ihc_bulk$bulk_full_2 , 1, sd)==0)
+
+ihc_bulk$bulk_full_1 <- ihc_bulk$bulk_full_1[-c(rm_bulk_full2),]
+ihc_bulk$bulk_full_2 <- ihc_bulk$bulk_full_2[-c(rm_bulk_full2),]
+```
+
+Next, we include the initial $H$s for each group, again, make sure they are matrices:
+
+```{R}
+ihc_bulk$initial_H_1 <- as.matrix(initial_H_1)
+ihc_bulk$initial_H_2 <- as.matrix(initial_H_2)
+class(ihc_bulk$initial_H_1 )
+class(ihc_bulk$initial_H_2 )
+```
+
+
+Sometimes due to numeric error or other reaons, the column sum of $H$s are not 1s, in this case, we need to re-clibrate them.
+
+```{R}
+ihc_bulk$initial_H_1 <- as.matrix(ihc_bulk$initial_H_1) %*% diag(1/apply(ihc_bulk$initial_H_1,2,sum))
+ihc_bulk$initial_H_2 <- as.matrix(ihc_bulk$initial_H_2)%*%diag(1/apply(ihc_bulk$initial_H_2,2,sum))
+```
+
+Initial $W$s can be obtain through $Y^{T}=H^{T}W^{T}$ for each group (you might need *NMF* package for *fcnnls* function). Noted that since the $W$s here are output from *fcnnls*, they do not have appropriate row/column names, we need to add them back.
+
+```{R}
+## calculate initial Ws
+ihc_bulk$initial_W_1 <- t((fcnnls( x = t(ihc_bulk$initial_H_1),y= t(ihc_bulk$bulk_full_1)  ) )$x) 
+ihc_bulk$initial_W_2 <-  t((fcnnls( x = t(ihc_bulk$initial_H_2),y= t(ihc_bulk$bulk_full_2)   ))$x)
+
+## add colnames and row names to initial Ws
+rownames(ihc_bulk$initial_W_1 ) <- rownames(ihc_bulk$bulk_full_1)
+rownames(ihc_bulk$initial_W_2 ) <- rownames(ihc_bulk$bulk_full_2)
+
+colnames(ihc_bulk$initial_W_1 ) <- rownames(ihc_bulk$initial_H1)
+colnames(ihc_bulk$initial_W_2 ) <- rownames(ihc_bulk$initial_H2)
+```
+
+Normally the signature matrix and their corresponding row indexes are not needed, except when you choose to update $H$ using only signature genes' rows (i.e., H_update_gene = "signature" in the main function). We can normally set the fields corresponding to signature genes as NA.
+
+```{R}
+ihc_bulk$sig_matrix <- NA
+ihc_bulk$bulk_sub_1 <- NA
+ihc_bulk$bulk_sub_2 <-  NA
+ihc_bulk$signature_gene_row_index <- NA
+```
+
+
+With all these done, we are ready to run the main SCADIE function.
+
+
+## Run SCADIE for Point Estiamtes
+
+The code below shows the setting for a default SCADIE run. Some common tweaks you can make are:
+
+* Set *update_W_method* to "NNLS" for updating $W$ with NNLS
+* Change *cutoff* to control the difference stop criterion. 
+* When *H_update_gene* is set to "all", we need to input valid *input_bulk_sub1*, *input_bulk_sub2*, and *signature_gene_row_index*, instead of NAs. The *input_bulk_sub1* is the submatrix of *input_bulk_full1* with only signature genes rows, same for *input_bulk_sub1*; the *signature_gene_row_index* is vector containing the signature genes's row positions in the full matrix. Due to the iterative nature of SCADIE, we will use updated siganture $\underline{W}$ for future $H$-update, so the actual signature matrix is not needed.
+
+```{R,cache=T}
+ihc_bulk_groundtruth_scad_output <- Iterate_W_H_full_general(n_ct=5,input_initial_H1 = ihc_bulk$initial_H_1,input_initial_H2 = ihc_bulk$initial_H_2,input_initial_W1 = ihc_bulk$initial_W_1,input_initial_W2 = ihc_bulk$initial_W_2,input_bulk_sub1 = ihc_bulk$bulk_sub_1,input_bulk_sub2 = ihc_bulk$bulk_sub_2,input_bulk_full1 = ihc_bulk$bulk_full_1,input_bulk_full2 = ihc_bulk$bulk_full_2,update_W_method = "SCAD",H_update_method = "NNLS",H_update_gene = "all",signature_gene_row_index = ihc_bulk$signature_gene_row_index,max_itr = 100,cutoff = 10^-6 )
+```
+
+The output list contains two entries, for group1 and group2, respectively. Each entry contains initial and end $W$s, end $H$s, as well as *weight* matrix $E$. You might also find a variable called *updated_weight*, this variable is useful when you update the weight matrix during iteration (set *weight_update_number* smaller than *max_itr*), it will record the lastest weight matrix *E*.
+
+```{R}
+## end W1
+head(ihc_bulk_groundtruth_scad_output$output1$W_end)
+## end H1
+head(ihc_bulk_groundtruth_scad_output$output1$H_end)
+```
+
+
+## Run SCADIE for Standard Error Estimation
+
+The code below shows the setting for running Jackknife estimate standard errors, due to the large number of variables, the *Estimate_sd_general* function ONLY TAKES THE COMPILED LIST as input!
+
+Other parameteres are largely the same as the *Iterate_W_H_full_general*. Since the Jackknife requires multiple runs of SCADIE, you can specify a higher *cores* number to speed up the process through parallele computing. 
+
+*jk_subsample* controls the number of leave-one-out jackknife runs conducted, the default setting for *jk_subsample* is the smaller sample size between group1 and group2, in this case, as we have 31 samples in group1 and 18 in group2, *jk_subsample* equals 18. Sometimes you might need to specify a *jk_subsample* number smaller than sample size for very large cohort.
+
+```{R,cache=T}
+ihc_bulk_groundtruth_sd <- Estimate_sd_general(input_list=ihc_bulk, update_W_method="SCAD" ,method="jackknife",cores=5,bs_num=NA,H_update_method="NNLS",H_update_gene="all",signature_gene_row_index=ihc_bulk$signature_gene_row_index,max_itr = 100,cutoff = 10^-6,jk_subsample = 18  )
+```
+
+The output list contains four fields:
+
+* *W1_vec* and *W2_vec* stores all the intermediate $W$ output throughout jacknife.
+* *w_diff_sd_jackknife* is the entry-wise standard error matrix, when performing differential expression analysis, this is the matrix to use.
+* *w_diff_sd_jackknife_raw* is the empirical standard error matrix from jackknife, *w_diff_sd_jackknife* was obtained from this matrix with adjustments mentioned in the original paper. 
+
+
+
