@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Daiwei Tang" />
+
+<meta name="date" content="2022-06-27" />
+
+<title>SCADIE_vignette</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">SCADIE_vignette</h1>
+<h4 class="author">Daiwei Tang</h4>
+<h4 class="date">2022-06-27</h4>
+
+
+
+<p>In this document we walk through the process of preparing data and
+analysis with SCADIE.</p>
+<div id="preparing-data" class="section level2">
+<h2>Preparing Data</h2>
+<p>Since SCADIE takes many data inputs for both groups, it is HIGHLY
+RECOMMENDED to store them in a list. Depending on the analysis goal, the
+data fields in the list may vary. In this section we use the Alzheimer’s
+disease (AD) dataset as an example, to walk through the data preparation
+process.</p>
+<p>Due to the complexity of raw data preprocessing, here we begin with
+pre-processed datasets.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;example_data&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span>()</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;ad_index&quot;                         &quot;ctrl_index&quot;                       &quot;geneExpr_raw&quot;                    </span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [4] &quot;geneExpr_raw_sub&quot;                 &quot;ihc_bulk&quot;                         &quot;ihc_bulk_groundtruth_scad_output&quot;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [7] &quot;initial_H_1&quot;                      &quot;initial_H_2&quot;                      &quot;rm_bulk_full1&quot;                   </span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [10] &quot;rm_bulk_full2&quot;</span></span></code></pre></div>
+<p>The <em>example_data</em> contains five objects:</p>
+<ul>
+<li><em>geneExpr_raw</em> is the combined gene expression dataframe for
+both groups</li>
+<li><em>ad_index</em> is the column indexes for AD samples in
+<em>geneExpr_raw</em></li>
+<li><em>ctrl_index</em> is the column indexes for control samples in
+<em>geneExpr_raw</em></li>
+<li><em>initial_H_1</em> is the IHC-profiled proportions for each sample
+in control group, see the manuscript for more details.</li>
+<li><em>initial_H_2</em> is the IHC-profiled proportions for each sample
+in AD group, see the manuscript for more details.</li>
+</ul>
+<p>We first create an empty list:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ihc_bulk <span class="ot">&lt;-</span> <span class="fu">list</span>()</span></code></pre></div>
+<p>Before adding bulk data <span class="math inline">\(Y\)</span> into
+the list, we need to remove the rows with constant value (e.g. 0), as
+these rows might create singularity during regression. The raw <span class="math inline">\(Y\)</span>s are usually data frames, need to
+convert them to matrix when including in the list. It is also
+recommended to make sure the row and column names are correctly
+retained.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Remove const rows across all columns</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>geneExpr_raw_sub <span class="ot">&lt;-</span> geneExpr_raw[<span class="sc">-</span><span class="fu">which</span>(<span class="fu">apply</span>(geneExpr_raw,<span class="dv">1</span>,sd)<span class="sc">==</span><span class="dv">0</span>),]</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="do">## add the bulk matrices to the list </span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>bulk_full_1 <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(geneExpr_raw_sub[,ctrl_index])</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>bulk_full_2 <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(geneExpr_raw_sub[,ad_index])</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="do">## remove the group-specific const rows</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>rm_bulk_full1 <span class="ot">&lt;-</span> <span class="fu">which</span>(<span class="fu">apply</span>(ihc_bulk<span class="sc">$</span>bulk_full_1 , <span class="dv">1</span>, sd)<span class="sc">==</span><span class="dv">0</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>rm_bulk_full2 <span class="ot">&lt;-</span> <span class="fu">which</span>(<span class="fu">apply</span>(ihc_bulk<span class="sc">$</span>bulk_full_2 , <span class="dv">1</span>, sd)<span class="sc">==</span><span class="dv">0</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>bulk_full_1 <span class="ot">&lt;-</span> ihc_bulk<span class="sc">$</span>bulk_full_1[<span class="sc">-</span><span class="fu">c</span>(rm_bulk_full2),]</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>bulk_full_2 <span class="ot">&lt;-</span> ihc_bulk<span class="sc">$</span>bulk_full_2[<span class="sc">-</span><span class="fu">c</span>(rm_bulk_full2),]</span></code></pre></div>
+<p>Next, we include the initial <span class="math inline">\(H\)</span>s
+for each group, again, make sure they are matrices:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>initial_H_1 <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(initial_H_1)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>initial_H_2 <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(initial_H_2)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(ihc_bulk<span class="sc">$</span>initial_H_1 )</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;matrix&quot; &quot;array&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(ihc_bulk<span class="sc">$</span>initial_H_2 )</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;matrix&quot; &quot;array&quot;</span></span></code></pre></div>
+<p>Sometimes due to numeric error or other reaons, the column sum of
+<span class="math inline">\(H\)</span>s are not 1s, in this case, we
+need to re-clibrate them.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>initial_H_1 <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(ihc_bulk<span class="sc">$</span>initial_H_1) <span class="sc">%*%</span> <span class="fu">diag</span>(<span class="dv">1</span><span class="sc">/</span><span class="fu">apply</span>(ihc_bulk<span class="sc">$</span>initial_H_1,<span class="dv">2</span>,sum))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>initial_H_2 <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(ihc_bulk<span class="sc">$</span>initial_H_2)<span class="sc">%*%</span><span class="fu">diag</span>(<span class="dv">1</span><span class="sc">/</span><span class="fu">apply</span>(ihc_bulk<span class="sc">$</span>initial_H_2,<span class="dv">2</span>,sum))</span></code></pre></div>
+<p>Initial <span class="math inline">\(W\)</span>s can be obtain through
+<span class="math inline">\(Y^{T}=H^{T}W^{T}\)</span> for each group
+(you might need <em>NMF</em> package for <em>fcnnls</em> function).
+Noted that since the <span class="math inline">\(W\)</span>s here are
+output from <em>fcnnls</em>, they do not have appropriate row/column
+names, we need to add them back.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="do">## calculate initial Ws</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>initial_W_1 <span class="ot">&lt;-</span> <span class="fu">t</span>((<span class="fu">fcnnls</span>( <span class="at">x =</span> <span class="fu">t</span>(ihc_bulk<span class="sc">$</span>initial_H_1),<span class="at">y=</span> <span class="fu">t</span>(ihc_bulk<span class="sc">$</span>bulk_full_1)  ) )<span class="sc">$</span>x) </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>initial_W_2 <span class="ot">&lt;-</span>  <span class="fu">t</span>((<span class="fu">fcnnls</span>( <span class="at">x =</span> <span class="fu">t</span>(ihc_bulk<span class="sc">$</span>initial_H_2),<span class="at">y=</span> <span class="fu">t</span>(ihc_bulk<span class="sc">$</span>bulk_full_2)   ))<span class="sc">$</span>x)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="do">## add colnames and row names to initial Ws</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(ihc_bulk<span class="sc">$</span>initial_W_1 ) <span class="ot">&lt;-</span> <span class="fu">rownames</span>(ihc_bulk<span class="sc">$</span>bulk_full_1)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(ihc_bulk<span class="sc">$</span>initial_W_2 ) <span class="ot">&lt;-</span> <span class="fu">rownames</span>(ihc_bulk<span class="sc">$</span>bulk_full_2)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(ihc_bulk<span class="sc">$</span>initial_W_1 ) <span class="ot">&lt;-</span> <span class="fu">rownames</span>(ihc_bulk<span class="sc">$</span>initial_H1)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(ihc_bulk<span class="sc">$</span>initial_W_2 ) <span class="ot">&lt;-</span> <span class="fu">rownames</span>(ihc_bulk<span class="sc">$</span>initial_H2)</span></code></pre></div>
+<p>Normally the signature matrix and their corresponding row indexes are
+not needed, except when you choose to update <span class="math inline">\(H\)</span> using only signature genes’ rows (i.e.,
+H_update_gene = “signature” in the main function). We can normally set
+the fields corresponding to signature genes as NA.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>sig_matrix <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>bulk_sub_1 <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>bulk_sub_2 <span class="ot">&lt;-</span>  <span class="cn">NA</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>ihc_bulk<span class="sc">$</span>signature_gene_row_index <span class="ot">&lt;-</span> <span class="cn">NA</span></span></code></pre></div>
+<p>With all these done, we are ready to run the main SCADIE
+function.</p>
+</div>
+<div id="run-scadie-for-point-estiamtes" class="section level2">
+<h2>Run SCADIE for Point Estiamtes</h2>
+<p>The code below shows the setting for a default SCADIE run. Some
+common tweaks you can make are:</p>
+<ul>
+<li>Set <em>update_W_method</em> to “NNLS” for updating <span class="math inline">\(W\)</span> with NNLS</li>
+<li>Change <em>cutoff</em> to control the difference stop
+criterion.</li>
+<li>When <em>H_update_gene</em> is set to “all”, we need to input valid
+<em>input_bulk_sub1</em>, <em>input_bulk_sub2</em>, and
+<em>signature_gene_row_index</em>, instead of NAs. The
+<em>input_bulk_sub1</em> is the submatrix of <em>input_bulk_full1</em>
+with only signature genes rows, same for <em>input_bulk_sub1</em>; the
+<em>signature_gene_row_index</em> is vector containing the signature
+genes’s row positions in the full matrix. Due to the iterative nature of
+SCADIE, we will use updated siganture <span class="math inline">\(\underline{W}\)</span> for future <span class="math inline">\(H\)</span>-update, so the actual signature matrix
+is not needed.</li>
+</ul>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ihc_bulk_groundtruth_scad_output <span class="ot">&lt;-</span> <span class="fu">Iterate_W_H_full_general</span>(<span class="at">n_ct=</span><span class="dv">5</span>,<span class="at">input_initial_H1 =</span> ihc_bulk<span class="sc">$</span>initial_H_1,<span class="at">input_initial_H2 =</span> ihc_bulk<span class="sc">$</span>initial_H_2,<span class="at">input_initial_W1 =</span> ihc_bulk<span class="sc">$</span>initial_W_1,<span class="at">input_initial_W2 =</span> ihc_bulk<span class="sc">$</span>initial_W_2,<span class="at">input_bulk_sub1 =</span> ihc_bulk<span class="sc">$</span>bulk_sub_1,<span class="at">input_bulk_sub2 =</span> ihc_bulk<span class="sc">$</span>bulk_sub_2,<span class="at">input_bulk_full1 =</span> ihc_bulk<span class="sc">$</span>bulk_full_1,<span class="at">input_bulk_full2 =</span> ihc_bulk<span class="sc">$</span>bulk_full_2,<span class="at">update_W_method =</span> <span class="st">&quot;SCAD&quot;</span>,<span class="at">H_update_method =</span> <span class="st">&quot;NNLS&quot;</span>,<span class="at">H_update_gene =</span> <span class="st">&quot;all&quot;</span>,<span class="at">signature_gene_row_index =</span> ihc_bulk<span class="sc">$</span>signature_gene_row_index,<span class="at">max_itr =</span> <span class="dv">100</span>,<span class="at">cutoff =</span> <span class="dv">10</span><span class="sc">^-</span><span class="dv">6</span> )</span></code></pre></div>
+<p>The output list contains two entries, for group1 and group2,
+respectively. Each entry contains initial and end <span class="math inline">\(W\)</span>s, end <span class="math inline">\(H\)</span>s, as well as <em>weight</em> matrix
+<span class="math inline">\(E\)</span>. You might also find a variable
+called <em>updated_weight</em>, this variable is useful when you update
+the weight matrix during iteration (set <em>weight_update_number</em>
+smaller than <em>max_itr</em>), it will record the lastest weight matrix
+<em>E</em>.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="do">## end W1</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ihc_bulk_groundtruth_scad_output<span class="sc">$</span>output1<span class="sc">$</span>W_end)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;              [,1]      [,2]      [,3]        [,4]       [,5]</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A1BG    3.4605604  2.307679  4.600243  0.78801121  3.0632277</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A2M     4.4345753 75.708786 60.488441 47.03041438 19.2480429</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A2ML1   0.5619459  1.637512  2.858105  2.30215774  3.5513614</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A4GALT  0.4549063 13.694707 20.087943  0.06006368  0.1761156</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; AAAS   18.2334658 22.119099 23.759702  9.55659622 17.0286508</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; AACS   27.2093384  4.946153  4.863392 21.14772427 14.3178620</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="do">## end H1</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(ihc_bulk_groundtruth_scad_output<span class="sc">$</span>output1<span class="sc">$</span>H_end)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            [,1]       [,2]       [,3]       [,4]       [,5]       [,6]       [,7]      [,8]       [,9]     [,10]</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1,] 0.38465612 0.59374291 0.58856637 0.14064896 0.36801439 0.61650466 0.60973774 0.4490609 0.36201463 0.3948992</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [2,] 0.39329333 0.21226403 0.09070842 0.38649607 0.12883595 0.03402505 0.02972472 0.1436104 0.31610286 0.2090216</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [3,] 0.14339066 0.07902992 0.00000000 0.13936005 0.17922536 0.03564556 0.06456163 0.1163791 0.08331656 0.1429672</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [4,] 0.00000000 0.00000000 0.18315935 0.06273392 0.23198642 0.14484269 0.16996782 0.1515172 0.07192908 0.1082629</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [5,] 0.07865989 0.11496314 0.13756586 0.27076100 0.09193787 0.16898203 0.12600809 0.1394324 0.16663687 0.1448491</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           [,11]      [,12]      [,13]     [,14]       [,15]      [,16]      [,17]      [,18]       [,19]     [,20]</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1,] 0.53849175 0.40864334 0.34822358 0.7251374 0.474781214 0.09444021 0.53449417 0.48714466 0.709636421 0.2445266</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [2,] 0.10873351 0.27777328 0.10682429 0.1008482 0.016298397 0.25566319 0.10935629 0.11231417 0.018241019 0.1308347</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [3,] 0.00000000 0.09956439 0.07884116 0.0000000 0.001809105 0.26179054 0.02311037 0.04345629 0.002933544 0.2637284</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [4,] 0.04937826 0.06102125 0.10671942 0.0000000 0.380475395 0.23604880 0.17007915 0.21447958 0.131665372 0.1356002</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [5,] 0.30339648 0.15299775 0.35939155 0.1740144 0.126635889 0.15205727 0.16296002 0.14260530 0.137523644 0.2253101</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           [,21]      [,22]      [,23]      [,24]      [,25]      [,26]      [,27]      [,28]     [,29]      [,30]</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1,] 0.26405794 0.28635861 0.33689049 0.50386158 0.57853318 0.43992482 0.47199619 0.73467840 0.3478175 0.46129476</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [2,] 0.46931427 0.30632611 0.27040161 0.17605894 0.08445899 0.06605891 0.08322382 0.00000000 0.1473433 0.08497677</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [3,] 0.09856334 0.11904474 0.07504439 0.03490792 0.11792077 0.09111167 0.07680008 0.01034481 0.1113880 0.26277393</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [4,] 0.05086954 0.08907636 0.14203963 0.16382329 0.11362183 0.14970009 0.14977919 0.12332968 0.1056856 0.07512359</span></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [5,] 0.11719490 0.19919417 0.17562388 0.12134827 0.10546523 0.25320451 0.21820073 0.13164711 0.2877656 0.11583096</span></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           [,31]</span></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1,] 0.35872496</span></span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [2,] 0.06046456</span></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [3,] 0.25019156</span></span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [4,] 0.14728859</span></span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [5,] 0.18333032</span></span></code></pre></div>
+</div>
+<div id="run-scadie-for-standard-error-estimation" class="section level2">
+<h2>Run SCADIE for Standard Error Estimation</h2>
+<p>The code below shows the setting for running Jackknife estimate
+standard errors, due to the large number of variables, the
+<em>Estimate_sd_general</em> function ONLY TAKES THE COMPILED LIST as
+input!</p>
+<p>Other parameteres are largely the same as the
+<em>Iterate_W_H_full_general</em>. Since the Jackknife requires multiple
+runs of SCADIE, you can specify a higher <em>cores</em> number to speed
+up the process through parallele computing.</p>
+<p><em>jk_subsample</em> controls the number of leave-one-out jackknife
+runs conducted, the default setting for <em>jk_subsample</em> is the
+smaller sample size between group1 and group2, in this case, as we have
+31 samples in group1 and 18 in group2, <em>jk_subsample</em> equals 18.
+Sometimes you might need to specify a <em>jk_subsample</em> number
+smaller than sample size for very large cohort.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ihc_bulk_groundtruth_sd <span class="ot">&lt;-</span> <span class="fu">Estimate_sd_general</span>(<span class="at">input_list=</span>ihc_bulk, <span class="at">update_W_method=</span><span class="st">&quot;SCAD&quot;</span> ,<span class="at">method=</span><span class="st">&quot;jackknife&quot;</span>,<span class="at">cores=</span><span class="dv">5</span>,<span class="at">bs_num=</span><span class="cn">NA</span>,<span class="at">H_update_method=</span><span class="st">&quot;NNLS&quot;</span>,<span class="at">H_update_gene=</span><span class="st">&quot;all&quot;</span>,<span class="at">signature_gene_row_index=</span>ihc_bulk<span class="sc">$</span>signature_gene_row_index,<span class="at">max_itr =</span> <span class="dv">100</span>,<span class="at">cutoff =</span> <span class="dv">10</span><span class="sc">^-</span><span class="dv">6</span>,<span class="at">jk_subsample =</span> <span class="dv">18</span>  )</span></code></pre></div>
+<p>The output list contains four fields:</p>
+<ul>
+<li><em>W1_vec</em> and <em>W2_vec</em> stores all the intermediate
+<span class="math inline">\(W\)</span> output throughout jacknife.</li>
+<li><em>w_diff_sd_jackknife</em> is the entry-wise standard error
+matrix, when performing differential expression analysis, this is the
+matrix to use.</li>
+<li><em>w_diff_sd_jackknife_raw</em> is the empirical standard error
+matrix from jackknife, <em>w_diff_sd_jackknife</em> was obtained from
+this matrix with adjustments mentioned in the original paper.</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
